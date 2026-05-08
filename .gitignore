@@ -1,0 +1,62 @@
+# Private/local agent and deploy state
+.claude/
+.codex/
+.agents/
+.playwright-mcp/
+.vercel/
+.vercelignore
+docs/iker-webdeploy/
+
+# Env
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build artefacts (no aplica hoy, prevenido a futuro)
+dist/
+build/
+out/
+node_modules/
+.cache/
+coverage/
+test-results/
+playwright-report/
+
+# Temporales
+tmp/
+temp/
+tmp-*
+*.tmp
+*.bak
+*.orig
+
+# Mantener carpetas vacías
+!.gitkeep
+
+# package-lock.json se mantiene en repo (lockfile reproducible)
+# Si prefieres pnpm: añade pnpm-lock.yaml y descomenta abajo
+# pnpm-lock.yaml
+
+# Deployment-only media. Keep these local for Vercel CLI deploys, not in the public repo.
+assets/
+videos/

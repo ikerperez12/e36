@@ -1,0 +1,43 @@
+{
+  "name": "E36 318is - Conducir es creer",
+  "short_name": "E36",
+  "description": "Pieza cinematografica fan-made del BMW 318is Coupe Pack M (E36, Hellrot 314).",
+  "lang": "es-ES",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "theme_color": "#050505",
+  "background_color": "#050505",
+  "categories": ["entertainment", "lifestyle", "magazines"],
+  "icons": [
+    {
+      "src": "assets/bmw-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/bmw-logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "assets/og-image.jpg",
+      "sizes": "1200x630",
+      "type": "image/jpeg",
+      "form_factor": "wide"
+    },
+    {
+      "src": "assets/posters/07.jpg",
+      "sizes": "540x960",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
+    }
+  ]
+}

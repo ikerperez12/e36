@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<meta name="color-scheme" content="dark">
+<title>Aviso legal - E36 Scroll Cine</title>
+<meta name="description" content="Aviso legal de E36 Scroll Cine: experiencia fan-made, no oficial, no afiliada, no patrocinada ni aprobada por BMW AG.">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://e36.vercel.app/legal.html">
+<link rel="icon" href="assets/bmw-logo.png" type="image/png" sizes="any">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://e36.vercel.app/legal.html">
+<meta property="og:title" content="Aviso legal - E36 Scroll Cine">
+<meta property="og:description" content="Experiencia fan-made sobre el BMW 318is Coupe Pack M (E36). No oficial.">
+<meta property="og:image" content="https://e36.vercel.app/assets/og-image.jpg">
+<style>
+  :root {
+    --bg: #050505;
+    --panel: #0c0c0c;
+    --ink: #f4f1ec;
+    --muted: #c2bbb0;
+    --dim: #8d867b;
+    --red: #ff3328;
+    --line: rgba(244,241,236,0.16);
+    --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); color: var(--ink); }
+  body {
+    min-height: 100vh;
+    margin: 0;
+    font-family: var(--font-body);
+    background:
+      linear-gradient(135deg, rgba(255,51,40,0.14), transparent 28%),
+      radial-gradient(circle at 80% 20%, rgba(255,255,255,0.08), transparent 28%),
+      var(--bg);
+  }
+  a { color: inherit; }
+  .skip {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    transform: translateY(-180%);
+    background: var(--ink);
+    color: var(--bg);
+    padding: 10px 14px;
+    z-index: 5;
+  }
+  .skip:focus { transform: none; }
+  .shell {
+    width: min(1080px, calc(100% - 36px));
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: clamp(24px, 6vw, 72px) 0;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    gap: clamp(28px, 6vw, 64px);
+  }
+  header, footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: center;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .brand img { width: 34px; height: 34px; }
+  .back {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 14px;
+    border: 1px solid var(--line);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .back:hover { border-color: var(--red); color: var(--ink); }
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(320px, 1.05fr);
+    gap: clamp(28px, 6vw, 76px);
+    align-items: center;
+  }
+  .hero-eyebrow {
+    font-family: var(--font-mono);
+    color: var(--red);
+    font-size: 12px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    margin: 0 0 18px;
+  }
+  h1 {
+    margin: 0;
+    font-size: clamp(46px, 9vw, 128px);
+    line-height: 0.86;
+    letter-spacing: 0;
+    text-transform: uppercase;
+  }
+  .lead {
+    margin: 24px 0 0;
+    max-width: 54ch;
+    color: var(--muted);
+    font-size: clamp(17px, 2vw, 22px);
+    line-height: 1.5;
+  }
+  .notice {
+    border: 1px solid var(--line);
+    background: rgba(12,12,12,0.82);
+    box-shadow: 0 24px 80px rgba(0,0,0,0.36);
+    padding: clamp(22px, 4vw, 42px);
+  }
+  .notice h2 {
+    margin: 0 0 22px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--red);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .notice p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.72;
+    font-size: 16px;
+  }
+  .notice p + p {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+  strong { color: var(--ink); font-weight: 700; }
+  footer {
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+    color: var(--dim);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  :focus-visible {
+    outline: 2px solid var(--red);
+    outline-offset: 3px;
+  }
+  @media (max-width: 760px) {
+    .shell { width: min(100% - 28px, 640px); }
+    header, footer { align-items: flex-start; flex-direction: column; }
+    main { grid-template-columns: 1fr; align-items: start; }
+    .notice { padding: 22px; }
+    .back { width: 100%; justify-content: center; }
+  }
+</style>
+</head>
+<body>
+  <a class="skip" href="#legal-main">Saltar al contenido</a>
+  <div class="shell">
+    <header>
+      <a class="brand" href="/" aria-label="Volver a E36 Scroll Cine">
+        <img src="assets/bmw-logo.png" alt="" width="34" height="34">
+        E36 Scroll Cine
+      </a>
+      <a class="back" href="/">Volver a la experiencia</a>
+    </header>
+
+    <main id="legal-main">
+      <section aria-labelledby="legal-title">
+        <p class="hero-eyebrow">Aviso legal</p>
+        <h1 id="legal-title">Fan-made. No oficial.</h1>
+        <p class="lead">E36 Scroll Cine es una pieza fan-made creada como homenaje audiovisual al BMW 318is Coupe Pack M (E36).</p>
+      </section>
+
+      <section class="notice" aria-label="Declaracion legal">
+        <h2>Declaracion de independencia</h2>
+        <p><strong>No es un sitio oficial de BMW AG.</strong> Este proyecto no esta afiliado, patrocinado, aprobado ni respaldado por BMW AG, BMW M GmbH ni sus filiales.</p>
+        <p>BMW, Serie 3, E36, 318is y cualquier nombre o marca asociada pertenecen a sus respectivos titulares. Se mencionan unicamente para identificar el vehiculo representado y contextualizar esta fanpage.</p>
+        <p>Los videos, imagenes y recursos visuales incluidos se usan solo para esta presentacion web. Este repositorio no concede derechos de reutilizacion sobre marcas, logotipos, imagenes de producto ni assets de terceros.</p>
+        <p>La web no vende vehiculos, piezas, servicios oficiales ni merchandising. Su finalidad es mostrar una experiencia visual e informativa sobre el E36.</p>
+      </section>
+    </main>
+
+    <footer>
+      <span>E36 Scroll Cine</span>
+      <span>Experiencia fan-made no oficial</span>
+    </footer>
+  </div>
+</body>
+</html>

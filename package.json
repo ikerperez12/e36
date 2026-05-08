@@ -1,0 +1,30 @@
+{
+  "name": "e36-scroll-cine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pieza cinematografica con scroll bloqueado del BMW 318is Coupe Pack M (E36, Hellrot 314).",
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes serve@latest -l 5173 .",
+    "start": "npx --yes serve@latest -l 5173 .",
+    "vercel:dev": "vercel dev",
+    "vercel:deploy": "vercel deploy --no-wait",
+    "vercel:prod": "vercel deploy --prod --no-wait",
+    "build:posters": "node tools/generate-posters.mjs",
+    "validate:html": "npx --yes html-validate@latest \"index.html\" \"E36 - Scroll Cine.html\" \"legal.html\"",
+    "check:js": "node --check api/health.js && node --check api/track.js && node --check sw.js && node --check tools/generate-posters.mjs && node --check tools/audit-public.mjs",
+    "audit:public": "node tools/audit-public.mjs",
+    "test:rendered": "playwright test",
+    "lighthouse:mobile": "npx --yes lighthouse@latest http://127.0.0.1:5173 --form-factor=mobile --screenEmulation.mobile=true",
+    "lighthouse:desktop": "npx --yes lighthouse@latest http://127.0.0.1:5173 --form-factor=desktop --screenEmulation.mobile=false",
+    "check": "npm run validate:html && npm run check:js && npm run audit:public"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "axe-core": "^4.11.4",
+    "ffmpeg-static": "^5.2.0"
+  }
+}
