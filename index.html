@@ -45,8 +45,39 @@
 <link rel="apple-touch-icon" href="assets/bmw-logo.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" as="image" href="assets/bmw-logo.png">
-<link rel="preload" as="image" href="assets/posters/intro.jpg">
-<link rel="preload" as="image" href="assets/posters/01.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="assets/posters/intro.jpg?v=20260509-cachefix2">
+<link rel="preload" as="image" href="assets/posters/01.jpg?v=20260509-cachefix2" fetchpriority="high">
+<script>
+(() => {
+  const CACHE_RESET_VERSION = 'e36-cache-reset-20260509-2';
+  const isE36Cache = (key) => /^e36-/.test(key);
+
+  async function purgeOldCaches() {
+    if (!('caches' in window)) return;
+    try {
+      const keys = await caches.keys();
+      await Promise.all(keys.filter(isE36Cache).map((key) => caches.delete(key)));
+    } catch (e) {}
+  }
+
+  purgeOldCaches();
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.type === 'E36_CACHE_RESET') purgeOldCaches();
+    });
+
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.getRegistration().then((registration) => {
+        if (!registration) return;
+        registration.update().catch(() => {});
+        registration.active?.postMessage({ type: 'PURGE_E36_CACHES' });
+        registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+      }).catch(() => {});
+    });
+  }
+})();
+</script>
 <script type="application/ld+json">
 {
   "@context":"https://schema.org",
@@ -1440,8 +1471,8 @@
 
   <!-- ===== INTRO ===== -->
   <div class="intro" id="intro" role="dialog" aria-labelledby="intro-mark" aria-describedby="intro-sub-1">
-    <video class="intro-video" id="intro-video" muted loop playsinline preload="auto" poster="assets/posters/intro.jpg" aria-hidden="true">
-      <source src="videos/intro.mp4" type="video/mp4">
+    <video class="intro-video" id="intro-video" muted loop playsinline preload="auto" poster="assets/posters/intro.jpg?v=20260509-cachefix2" aria-hidden="true">
+      <source src="videos/intro.mp4?v=20260509-cachefix2" type="video/mp4">
     </video>
     <div class="intro-shell">
       <img class="intro-logo" src="assets/bmw-logo.png" alt="" width="512" height="512" aria-hidden="true">
@@ -1541,6 +1572,12 @@
     { tag: '07 / 07 - M44B19', shortLabel: 'M44B19', title: ['CAPO', '<em>ABIERTO.</em>'], sub: 'El cuatro cilindros queda a la vista: bloque ligero, cadena de distribucion y admision DISA.', fact: 'M44B19: 1.895 cc, 16 valvulas DOHC, Bosch Motronic M5.2 y colector de admision de longitud variable. Un motor compacto que mantiene el morro del 318is agil y preciso.', meta: [{ k: 'Motor', v: 'M44B19' }, { k: 'Valv.', v: '16', sm: 'DOHC' }, { k: 'Admision', v: 'DISA' }, { k: 'Gestion', v: 'M5.2' }], video: 'videos/07.mp4', poster: 'assets/posters/07.jpg' }
   ];
 
+  const ASSET_VERSION = '20260509-cachefix2';
+  function versioned(src) {
+    if (!src || /^https?:/i.test(src) || src.includes('?v=')) return src;
+    return `${src}?v=${ASSET_VERSION}`;
+  }
+
   // Rotating ticker facts (era flavor)
   const tickerFacts = [
     'COTY EUROPE 1992', '318is COUPE PACK M - BABY M3', 'M42B18 1.796 cc TO M44B19 1.895 cc - 4 CIL 16V DOHC', '140 CV @ 6.000 RPM - 180 NM @ 4.300 RPM', '0-100 EN 10,2 S - VMAX 213 KM/H - CORTE 6.500 RPM', 'COLECTORES TUBULARES INOX 4-2-1', 'VALVULA DISA - ADMISION DE LONGITUD VARIABLE', 'GESTION BOSCH MOTRONIC M5.2 - OBD2 - EWS II', 'Z-AXLE - SUSPENSION TRASERA MULTIBRAZO', 'SUSPENSION M S704A - 15 MM MAS BAJA - SACHS', 'CAJA GETRAG 250G - GRUPO FINAL 3.45 - LSD 25% OPCIONAL', 'FRENOS 286 MM DEL VENT - 280 MM TRAS MACIZO', 'PCD 5x120 - BUJE 72,6 MM - M12x1.5 - ET 41', 'BATERIA EN MALETERO - REPARTO 50/50', 'VOLANTE M-TECHNIC II - CIELO ANTRACITA', 'PINTURA HELLROT 314 - ROJO MONOCAPA SOLIDO BMW 90s'
@@ -1571,13 +1608,19 @@
   const ecRestart = document.getElementById('ec-restart');
   const scrollHint = document.getElementById('scroll-hint');
 
-  function playVideo(video, forceMuted = false) {
-    if (!video) return Promise.resolve(false);
-    if (forceMuted) video.muted = true;
+  function normalizeVideo(video) {
     video.playsInline = true;
+    video.autoplay = true;
     video.setAttribute('playsinline', '');
     video.setAttribute('webkit-playsinline', 'true');
     video.setAttribute('x5-playsinline', 'true');
+    video.setAttribute('autoplay', '');
+  }
+
+  function playVideo(video, forceMuted = false) {
+    if (!video) return Promise.resolve(false);
+    normalizeVideo(video);
+    video.muted = !!forceMuted;
     try {
       const playback = video.play();
       if (playback && typeof playback.then === 'function') {
@@ -1600,25 +1643,35 @@
     }
   }
 
+  function ensurePlayback(video, forceMuted = false) {
+    return playVideo(video, forceMuted).then((ok) => {
+      if (ok) return true;
+      const retry = () => playVideo(video, true);
+      video.addEventListener('loadeddata', retry, { once: true });
+      video.addEventListener('canplay', retry, { once: true });
+      loadVideo(video);
+      return false;
+    });
+  }
+
   function loadVideo(video) {
     if (!video) return;
     if (video.preload !== 'auto') video.preload = 'auto';
     try { video.load(); } catch (e) {}
   }
 
+  normalizeVideo(introVideo);
   playVideo(introVideo, true);
 
   // ===== BUILD VIDEO ELEMENTS =====
   scenes.forEach((s, i) => {
     const v = document.createElement('video');
-    v.src = s.video;
-    v.poster = s.poster;
+    v.src = versioned(s.video);
+    v.poster = versioned(s.poster);
     v.muted = true;
     v.loop = true;
-    v.playsInline = true;
+    normalizeVideo(v);
     v.disableRemotePlayback = true;
-    v.setAttribute('webkit-playsinline', 'true');
-    v.setAttribute('x5-playsinline', 'true');
     v.setAttribute('aria-label', 'Escena ' + (i + 1) + ': ' + s.shortLabel);
     v.preload = 'auto';
     v.dataset.idx = i;
@@ -1700,7 +1753,7 @@
         v.muted = !audioOn;
         loadVideo(v);
         try { v.currentTime = 0; } catch (e) {}
-        playVideo(v, !audioOn);
+        ensurePlayback(v, !audioOn);
       } else {
         v.classList.remove('is-active');
         try { v.pause(); } catch (e) {}
@@ -1735,7 +1788,7 @@
       'assets/og-image.jpg',
       'assets/posters/intro.jpg',
       ...scenes.flatMap((s) => [s.poster, s.video])
-    ])].filter(Boolean);
+    ].map(versioned))].filter(Boolean);
 
     idle(async () => {
       for (const src of unique) {
@@ -1811,6 +1864,7 @@
   let wheelAccum = 0;
   window.addEventListener('wheel', (e) => {
     e.preventDefault();
+    if (!started) return;
     if (busy) return;
     const now = performance.now();
     if (now - wheelLock < 350) return;
@@ -1824,6 +1878,7 @@
 
   // ===== INPUT - KEYBOARD =====
   window.addEventListener('keydown', (e) => {
+    if (!started) return;
     // Skip when focus is in an interactive element where the keys mean something else
     const tag = (e.target && e.target.tagName) || '';
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
@@ -1851,6 +1906,7 @@
   const stage = document.getElementById('stage');
 
   window.addEventListener('touchstart', (e) => {
+    if (!started) return;
     if (e.touches.length !== 1) return;
     touch = {
       x: e.touches[0].clientX,
@@ -1916,40 +1972,37 @@
     audioBtn.setAttribute('title', audioOn ? 'Silenciar sonido' : 'Activar sonido');
     videos.forEach((v, i) => { v.muted = !(audioOn && i === idx); });
     if (audioOn) {
-      if (started) playVideo(videos[idx], false);
+      if (started) ensurePlayback(videos[idx], false);
     }
   }
   audioBtn.addEventListener('click', toggleAudio);
 
   // ===== INTRO =====
+  let started = false;
   function startExperience() {
     if (started && !document.body.classList.contains('is-intro')) return;
     started = true;
     idx = 0;
     history.replaceState(null, '', location.pathname + location.search);
-    warmAllVideos();
-    warmAllMediaFiles();
+    renderScene(0);
+    renderList();
+    activateVideo(0);
+    idle(() => {
+      warmAllVideos();
+      warmAllMediaFiles();
+    });
     document.body.classList.remove('is-intro');
     intro.classList.add('gone');
     setTimeout(() => {
       intro.style.display = 'none';
       try { introVideo.pause(); } catch (e) {}
     }, 700);
-    // Activate first video right away
-    activateVideo(0);
-    renderScene(0);
-    renderList();
     document.body.dataset.screenLabel = `E36 - 01 ${scenes[0].shortLabel}`;
   }
-  introCta.addEventListener('click', startExperience);
-  // also start on first wheel/key/touch
-  let started = false;
-  function maybeStart() {
-    if (started) return;
+  introCta.addEventListener('click', (event) => {
+    event.preventDefault();
+    event.stopPropagation();
     startExperience();
-  }
-  ['wheel','keydown','touchstart','click'].forEach(ev => {
-    window.addEventListener(ev, maybeStart, { once: true, passive: ev !== 'wheel' });
   });
 
   // ===== END CARD RESTART =====
@@ -2052,7 +2105,14 @@
   // ===== SERVICE WORKER (offline shell + assets) =====
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      idle(() => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+      idle(() => navigator.serviceWorker
+        .register(`./sw.js?v=${ASSET_VERSION}`, { updateViaCache: 'none' })
+        .then((registration) => {
+          registration.update().catch(() => {});
+          registration.active?.postMessage({ type: 'PURGE_E36_CACHES' });
+          registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+        })
+        .catch(() => {}));
     });
   }
 

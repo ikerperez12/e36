@@ -24,9 +24,9 @@ test('home renders the cinematic experience without accessibility violations', a
   await expect(page.getByRole('link', { name: /Aviso legal/i })).toBeVisible();
 
   await page.getByRole('button', { name: /Iniciar/i }).click();
-  await expect(page.getByRole('heading', { name: /MUNICH|MÚNICH/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /MUNICH/i })).toBeVisible();
   await page.keyboard.press('End');
-  await expect(page.getByText(/CAPO|CAPÓ/i)).toBeVisible();
+  await expect(page.getByText(/CAPO/i)).toBeVisible();
   await expect(page.getByText(/M44B19/i).first()).toBeVisible();
 
   if (isMobile) {
@@ -50,16 +50,59 @@ test('home always starts at intro and scene 01, with mobile-safe video playback'
 
   await page.getByRole('button', { name: /Iniciar/i }).click();
   await expect(page.locator('body')).not.toHaveClass(/is-intro/);
-  await expect(page.getByRole('heading', { name: /MUNICH|MÃšNICH/i })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /MUNICH/i })).toBeVisible();
 
   const activeVideo = page.locator('#video-wrap video.is-active');
   await expect(activeVideo).toHaveCount(1);
   await expect.poll(() => activeVideo.evaluate((video) => video.preload)).toBe('auto');
-  await expect.poll(() => activeVideo.evaluate((video) => video.currentSrc.endsWith('/videos/01.mp4'))).toBe(true);
+  await expect.poll(() => activeVideo.evaluate((video) => video.currentSrc.includes('/videos/01.mp4'))).toBe(true);
   await expect.poll(
     () => activeVideo.evaluate((video) => !video.paused && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA),
     { timeout: 10_000 }
   ).toBe(true);
+});
+
+test('intro only starts from the Iniciar button', async ({ page, isMobile }) => {
+  await page.goto('/');
+  await expect(page.getByRole('button', { name: /Iniciar/i })).toBeVisible();
+
+  await page.mouse.click(12, 12);
+  if (isMobile) {
+    await page.touchscreen.tap(24, 24);
+  }
+  await expect(page.locator('body')).toHaveClass(/is-intro/);
+
+  await page.getByRole('button', { name: /Iniciar/i }).click();
+  await expect(page.locator('body')).not.toHaveClass(/is-intro/);
+  await expect(page.getByRole('heading', { name: /MUNICH/i })).toBeVisible();
+});
+
+test('old E36 service-worker caches are purged', async ({ page }) => {
+  await page.goto('/');
+  const cacheSurvivedInitialPurge = await page.evaluate(async () => {
+    const cache = await caches.open('e36-v5-shell');
+    await cache.put('/stale-index.html', new Response('<!doctype html><title>stale</title>', {
+      headers: { 'Content-Type': 'text/html' }
+    }));
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    return caches.has('e36-v5-shell');
+  });
+
+  if (!cacheSurvivedInitialPurge) {
+    await expect.poll(() => page.evaluate(() => caches.has('e36-v5-shell'))).toBe(false);
+    return;
+  }
+
+  await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.register('/sw.js?v=test-purge', { updateViaCache: 'none' });
+    await navigator.serviceWorker.ready;
+    registration.active?.postMessage({ type: 'PURGE_E36_CACHES' });
+  });
+
+  await expect.poll(
+    () => page.evaluate(() => caches.has('e36-v5-shell')),
+    { timeout: 10_000 }
+  ).toBe(false);
 });
 
 test('legal page is readable, linked, and accessible', async ({ page }) => {

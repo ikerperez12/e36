@@ -33,7 +33,7 @@ Live: [https://e36.vercel.app](https://e36.vercel.app)
 
 - HTML, CSS y JavaScript sin framework.
 - Vercel Functions Node.js.
-- Service Worker para cache de shell, posters y videos.
+- Service Worker de compatibilidad para purgar caches antiguas y evitar HTML/assets obsoletos.
 - Playwright + axe-core para QA renderizado.
 - `ffmpeg-static` para regenerar posters y optimizar video.
 
