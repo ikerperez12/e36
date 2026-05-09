@@ -3,13 +3,13 @@
  *
  * Strategy:
  *  - APP_SHELL: cache-first (HTML, CSS-in-HTML, JS-in-HTML, manifest, BMW logo, posters)
- *  - VIDEOS:    stale-while-revalidate (each .mp4 cached after first play)
+ *  - VIDEOS:    network passthrough (Vercel serves Range/bytes correctly)
  *  - API:       network-only, never cached
  *
  * Bump CACHE_VERSION when shipping changes that need to invalidate caches.
  */
 
-const CACHE_VERSION = 'e36-v5';
+const CACHE_VERSION = 'e36-v6';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const VIDEO_CACHE = `${CACHE_VERSION}-video`;
 
@@ -63,10 +63,9 @@ self.addEventListener('fetch', (event) => {
   // Never cache cross-origin (Google Fonts handle their own caching)
   if (url.origin !== self.location.origin) return;
 
-  // Videos: stale-while-revalidate. Range requests bypass cache (Safari iOS uses Range).
+  // Videos must bypass Cache API entirely. Browsers use Range requests for MP4
+  // playback/seek and Cache API cannot safely store those partial responses.
   if (url.pathname.startsWith('/videos/')) {
-    if (req.headers.has('range')) return; // let the browser handle range
-    event.respondWith(staleWhileRevalidate(req, VIDEO_CACHE));
     return;
   }
 
