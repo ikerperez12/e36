@@ -41,10 +41,10 @@ const response = await fetch(ENDPOINT, {
   body: JSON.stringify(payload)
 });
 
-if (response.status !== 200) {
+if (![200, 202].includes(response.status)) {
   const text = await response.text().catch(() => '');
   console.error(`IndexNow submission failed: HTTP ${response.status}${text ? ` - ${text}` : ''}`);
   process.exit(1);
 }
 
-console.log(`IndexNow submitted ${urls.length} URLs for ${host}.`);
+console.log(`IndexNow accepted ${urls.length} URLs for ${host} (HTTP ${response.status}).`);
