@@ -1907,26 +1907,33 @@
   }
   if ('PerformanceObserver' in window) {
     try {
+      const supported = PerformanceObserver.supportedEntryTypes || [];
       // LCP
-      new PerformanceObserver((list) => {
-        const entries = list.getEntries();
-        const last = entries[entries.length - 1];
-        if (last) reportVital('LCP', last.startTime);
-      }).observe({ type: 'largest-contentful-paint', buffered: true });
+      if (supported.includes('largest-contentful-paint')) {
+        new PerformanceObserver((list) => {
+          const entries = list.getEntries();
+          const last = entries[entries.length - 1];
+          if (last) reportVital('LCP', last.startTime);
+        }).observe({ type: 'largest-contentful-paint', buffered: true });
+      }
       // CLS
-      let cls = 0;
-      new PerformanceObserver((list) => {
-        for (const e of list.getEntries()) {
-          if (!e.hadRecentInput) cls += e.value;
-        }
-        reportVital('CLS', cls);
-      }).observe({ type: 'layout-shift', buffered: true });
+      if (supported.includes('layout-shift')) {
+        let cls = 0;
+        new PerformanceObserver((list) => {
+          for (const e of list.getEntries()) {
+            if (!e.hadRecentInput) cls += e.value;
+          }
+          reportVital('CLS', cls);
+        }).observe({ type: 'layout-shift', buffered: true });
+      }
       // INP (rough, via event timing)
-      new PerformanceObserver((list) => {
-        for (const e of list.getEntries()) {
-          if (e.duration > 40) reportVital('INP', e.duration);
-        }
-      }).observe({ type: 'event', durationThreshold: 40, buffered: true });
+      if (supported.includes('event')) {
+        new PerformanceObserver((list) => {
+          for (const e of list.getEntries()) {
+            if (e.duration > 40) reportVital('INP', e.duration);
+          }
+        }).observe({ type: 'event', durationThreshold: 40, buffered: true });
+      }
     } catch (e) {}
   }
 
