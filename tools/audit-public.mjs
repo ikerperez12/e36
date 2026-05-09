@@ -12,9 +12,7 @@ const deniedTracked = [
   /^\.agents\//,
   /^\.playwright-mcp\//,
   /^\.vercel\//,
-  /^\.env(?:\.|$)/,
-  /^assets\//,
-  /^videos\//
+  /^\.env(?:\.|$)/
 ];
 
 const contentRules = [

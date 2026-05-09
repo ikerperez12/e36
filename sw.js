@@ -9,7 +9,7 @@
  * Bump CACHE_VERSION when shipping changes that need to invalidate caches.
  */
 
-const CACHE_VERSION = 'e36-v4';
+const CACHE_VERSION = 'e36-v5';
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const VIDEO_CACHE = `${CACHE_VERSION}-video`;
 

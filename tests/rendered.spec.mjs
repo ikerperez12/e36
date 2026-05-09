@@ -39,6 +39,29 @@ test('home renders the cinematic experience without accessibility violations', a
   expect(results.violations).toEqual([]);
 });
 
+test('home always starts at intro and scene 01, with mobile-safe video playback', async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('e36:lastIdx', '5');
+  });
+
+  await page.goto('/#scene=6');
+  await expect(page.getByRole('button', { name: /Iniciar/i })).toBeVisible();
+  await expect(page.locator('body')).toHaveClass(/is-intro/);
+
+  await page.getByRole('button', { name: /Iniciar/i }).click();
+  await expect(page.locator('body')).not.toHaveClass(/is-intro/);
+  await expect(page.getByRole('heading', { name: /MUNICH|MÃšNICH/i })).toBeVisible();
+
+  const activeVideo = page.locator('#video-wrap video.is-active');
+  await expect(activeVideo).toHaveCount(1);
+  await expect.poll(() => activeVideo.evaluate((video) => video.preload)).toBe('auto');
+  await expect.poll(() => activeVideo.evaluate((video) => video.currentSrc.endsWith('/videos/01.mp4'))).toBe(true);
+  await expect.poll(
+    () => activeVideo.evaluate((video) => !video.paused && video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA),
+    { timeout: 10_000 }
+  ).toBe(true);
+});
+
 test('legal page is readable, linked, and accessible', async ({ page }) => {
   await page.goto('/legal.html');
   await expect(page).toHaveTitle(/Aviso legal/);

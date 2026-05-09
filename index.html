@@ -36,7 +36,6 @@
 <link rel="apple-touch-icon" href="assets/bmw-logo.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preload" as="image" href="assets/bmw-logo.png">
-<link rel="preload" as="video" href="videos/intro.mp4" type="video/mp4">
 <link rel="preload" as="image" href="assets/posters/intro.jpg">
 <link rel="preload" as="image" href="assets/posters/01.jpg" fetchpriority="high">
 <script type="application/ld+json">
@@ -1039,13 +1038,17 @@
       border: 0;
       box-shadow: none;
     }
-    .screen::before { inset: 12px; opacity: 0.7; }
+    .screen::before { display: none; }
     .screen::after {
       /* Strong bottom gradient so overlay text is bulletproof on any video */
       background:
         linear-gradient(to top, rgba(0,0,0,0.98) 0%, rgba(0,0,0,0.82) 23%, rgba(0,0,0,0.36) 50%, rgba(0,0,0,0) 72%),
         linear-gradient(to bottom, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0) 30%),
         radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.55) 100%);
+    }
+    .scanlines,
+    .crunch {
+      display: none;
     }
 
     /* Bigger watermark cover on mobile (videos render larger) */
@@ -1090,7 +1093,7 @@
       gap: 8px 10px;
       max-width: none;
       padding-top: 8px;
-      border-top: 1px solid rgba(255,255,255,0.12);
+      border-top: 0;
     }
     .meta-cell { gap: 2px; }
     .meta-cell .k { font-size: 8px; letter-spacing: 0.16em; color: #b6aea2; }
@@ -1481,10 +1484,43 @@
   const endCard = document.getElementById('end-card');
   const ecRestart = document.getElementById('ec-restart');
   const scrollHint = document.getElementById('scroll-hint');
-  try {
-    const introPlayback = introVideo.play();
-    if (introPlayback && typeof introPlayback.catch === 'function') introPlayback.catch(() => {});
-  } catch (e) {}
+
+  function playVideo(video, forceMuted = false) {
+    if (!video) return Promise.resolve(false);
+    if (forceMuted) video.muted = true;
+    video.playsInline = true;
+    video.setAttribute('playsinline', '');
+    video.setAttribute('webkit-playsinline', 'true');
+    video.setAttribute('x5-playsinline', 'true');
+    try {
+      const playback = video.play();
+      if (playback && typeof playback.then === 'function') {
+        return playback.then(() => true).catch(() => {
+          video.muted = true;
+          try {
+            const retry = video.play();
+            if (retry && typeof retry.then === 'function') {
+              return retry.then(() => true).catch(() => false);
+            }
+            return Promise.resolve(true);
+          } catch (e) {
+            return Promise.resolve(false);
+          }
+        });
+      }
+      return Promise.resolve(true);
+    } catch (e) {
+      return Promise.resolve(false);
+    }
+  }
+
+  function loadVideo(video) {
+    if (!video) return;
+    if (video.preload !== 'auto') video.preload = 'auto';
+    try { video.load(); } catch (e) {}
+  }
+
+  playVideo(introVideo, true);
 
   // ===== BUILD VIDEO ELEMENTS =====
   scenes.forEach((s, i) => {
@@ -1498,7 +1534,7 @@
     v.setAttribute('webkit-playsinline', 'true');
     v.setAttribute('x5-playsinline', 'true');
     v.setAttribute('aria-label', 'Escena ' + (i + 1) + ': ' + s.shortLabel);
-    v.preload = 'none';
+    v.preload = 'auto';
     v.dataset.idx = i;
     v.addEventListener('error', () => {
       console.warn('Video error', s.video);
@@ -1508,6 +1544,7 @@
     videoWrap.appendChild(v);
   });
   const videos = [...videoWrap.querySelectorAll('video')];
+  videos.forEach(loadVideo);
 
   // ===== BUILD SCENE LIST =====
   scenes.forEach((s, i) => {
@@ -1574,12 +1611,10 @@
     videos.forEach((v, j) => {
       if (j === i) {
         v.classList.add('is-active');
-        if (v.preload === 'none') {
-          v.preload = 'metadata';
-          try { v.load(); } catch (e) {}
-        }
-        try { v.currentTime = 0; v.play(); } catch (e) {}
         v.muted = !audioOn;
+        loadVideo(v);
+        try { v.currentTime = 0; } catch (e) {}
+        playVideo(v, !audioOn);
       } else {
         v.classList.remove('is-active');
         try { v.pause(); } catch (e) {}
@@ -1594,12 +1629,15 @@
   }
 
   function preloadNeighbors(i) {
-    [i + 1, i - 1].forEach(j => {
+    [i + 1, i - 1, i + 2].forEach(j => {
       if (j >= 0 && j < videos.length) {
-        videos[j].preload = 'auto';
-        try { videos[j].load(); } catch (e) {}
+        loadVideo(videos[j]);
       }
     });
+  }
+
+  function warmAllVideos() {
+    videos.forEach(loadVideo);
   }
 
   // ===== TRANSITION =====
@@ -1630,13 +1668,11 @@
       announce(`Escena ${idx + 1} de ${scenes.length}: ${scenes[idx].shortLabel}`);
       // body label
       document.body.dataset.screenLabel = `E36 - ${String(idx + 1).padStart(2, '0')} ${scenes[idx].shortLabel}`;
-      // URL hash deep-link (silent)
+      // URL hash deep-link (silent). It never decides initial load, only real navigation.
       try {
         const hash = '#scene=' + (idx + 1);
         if (location.hash !== hash) history.replaceState(null, '', hash);
       } catch (e) {}
-      // Persist last viewed scene
-      try { localStorage.setItem('e36:lastIdx', String(idx)); } catch (e) {}
       // hide scroll hint after first move
       if (scrollHint) scrollHint.classList.add('is-end');
       // end card
@@ -1771,13 +1807,18 @@
     audioBtn.setAttribute('title', audioOn ? 'Silenciar sonido' : 'Activar sonido');
     videos.forEach((v, i) => { v.muted = !(audioOn && i === idx); });
     if (audioOn) {
-      if (started) try { videos[idx].play(); } catch (e) {}
+      if (started) playVideo(videos[idx], false);
     }
   }
   audioBtn.addEventListener('click', toggleAudio);
 
   // ===== INTRO =====
   function startExperience() {
+    if (started && !document.body.classList.contains('is-intro')) return;
+    started = true;
+    idx = 0;
+    history.replaceState(null, '', location.pathname + location.search);
+    warmAllVideos();
     document.body.classList.remove('is-intro');
     intro.classList.add('gone');
     setTimeout(() => {
@@ -1795,7 +1836,6 @@
   let started = false;
   function maybeStart() {
     if (started) return;
-    started = true;
     startExperience();
   }
   ['wheel','keydown','touchstart','click'].forEach(ev => {
@@ -1866,23 +1906,19 @@
     } catch (e) {}
   }
 
-  // ===== DEEP-LINK (URL hash - scene) =====
-  function startIdxFromUrl() {
+  // ===== DEEP-LINK (URL hash -> scene) =====
+  function sceneIdxFromHash() {
     const m = (location.hash || '').match(/scene=(\d+)/);
     if (m) {
       const n = parseInt(m[1], 10) - 1;
       if (n >= 0 && n < scenes.length) return n;
     }
-    // Fallback: last viewed scene from localStorage
-    try {
-      const stored = parseInt(localStorage.getItem('e36:lastIdx') || '0', 10);
-      if (stored >= 0 && stored < scenes.length) return stored;
-    } catch (e) {}
     return 0;
   }
   window.addEventListener('hashchange', () => {
     if (busy) return;
-    const target = startIdxFromUrl();
+    if (!started) return;
+    const target = sceneIdxFromHash();
     if (target !== idx) goTo(target);
   });
 
@@ -1891,7 +1927,8 @@
     if (document.hidden) {
       try { videos[idx].pause(); } catch (e) {}
     } else {
-      try { videos[idx].play(); } catch (e) {}
+      if (started) playVideo(videos[idx], !audioOn);
+      else playVideo(introVideo, true);
     }
   });
 
@@ -1902,29 +1939,11 @@
     });
   }
 
-  // ===== CONNECTION-AWARE LOADING =====
-  // If user has saveData enabled or is on 2G, downgrade preload to current scene only.
-  const conn = navigator.connection || navigator.webkitConnection;
-  if (conn && (conn.saveData || /(^|-)2g$/.test(conn.effectiveType || ''))) {
-    videos.forEach((v) => { v.preload = 'none'; });
-  }
-
   // ===== INIT =====
-  const initialIdx = startIdxFromUrl();
-  if (initialIdx !== 0) {
-    // Deep-linked to a non-first scene - skip intro
-    idx = initialIdx;
-    intro.classList.add('gone');
-    document.body.classList.remove('is-intro');
-    setTimeout(() => {
-      intro.style.display = 'none';
-      try { introVideo.pause(); } catch (e) {}
-    }, 0);
-    started = true;
-    document.body.dataset.screenLabel = `E36 - ${String(idx + 1).padStart(2, '0')} ${scenes[idx].shortLabel}`;
-    endCard.classList.toggle('is-on', idx === scenes.length - 1);
-    activateVideo(idx);
-  }
+  idx = 0;
+  document.body.classList.add('is-intro');
+  document.body.dataset.screenLabel = 'E36 Scroll Cine';
+  warmAllVideos();
   renderScene(idx);
   renderList();
 

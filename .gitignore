@@ -57,6 +57,9 @@ tmp-*
 # Si prefieres pnpm: añade pnpm-lock.yaml y descomenta abajo
 # pnpm-lock.yaml
 
-# Deployment-only media. Keep these local for Vercel CLI deploys, not in the public repo.
-assets/
-videos/
+# Public runtime media. These must be tracked when Vercel deploys from GitHub,
+# otherwise the experience loads without videos, posters, logo or PWA icons.
+!assets/
+!assets/**
+!videos/
+!videos/**
