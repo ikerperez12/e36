@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#050505" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#050505" media="(prefers-color-scheme: light)">
 <meta name="color-scheme" content="dark">
@@ -1640,6 +1640,29 @@
     videos.forEach(loadVideo);
   }
 
+  let mediaWarmStarted = false;
+  function warmAllMediaFiles() {
+    if (mediaWarmStarted) return;
+    mediaWarmStarted = true;
+    const unique = [...new Set([
+      'assets/bmw-logo.png',
+      'assets/og-image.jpg',
+      'assets/posters/intro.jpg',
+      ...scenes.flatMap((s) => [s.poster, s.video])
+    ])].filter(Boolean);
+
+    idle(async () => {
+      for (const src of unique) {
+        try {
+          const response = await fetch(src, { cache: 'force-cache' });
+          if (!response.ok) continue;
+          // Read the body so the browser fully warms its HTTP cache.
+          await response.arrayBuffer();
+        } catch (e) {}
+      }
+    });
+  }
+
   // ===== TRANSITION =====
   function goTo(target) {
     if (busy) return;
@@ -1819,6 +1842,7 @@
     idx = 0;
     history.replaceState(null, '', location.pathname + location.search);
     warmAllVideos();
+    warmAllMediaFiles();
     document.body.classList.remove('is-intro');
     intro.classList.add('gone');
     setTimeout(() => {

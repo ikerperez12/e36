@@ -20,6 +20,19 @@ export default defineConfig({
       use: { ...devices['Pixel 5'] }
     },
     {
+      name: 'webkit-ios',
+      use: { ...devices['iPhone 13'] }
+    },
+    {
+      name: 'firefox-mobile',
+      use: {
+        browserName: 'firefox',
+        viewport: { width: 390, height: 844 },
+        hasTouch: true,
+        deviceScaleFactor: 2
+      }
+    },
+    {
       name: 'chromium-desktop',
       use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 1000 } }
     }
