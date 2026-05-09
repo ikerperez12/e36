@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <url>
     <loc>https://e36.vercel.app/</loc>
-    <lastmod>2026-05-08</lastmod>
-    <changefreq>monthly</changefreq>
+    <lastmod>2026-05-09</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://e36.vercel.app/assets/og-image.jpg</image:loc>
+      <image:title>BMW 318is Coupe Pack M E36 Hellrot 314</image:title>
+      <image:caption>Experiencia cinematografica del BMW 318is Coupe Pack M E36.</image:caption>
+    </image:image>
   </url>
   <url>
     <loc>https://e36.vercel.app/legal.html</loc>
-    <lastmod>2026-05-08</lastmod>
+    <lastmod>2026-05-09</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.4</priority>
   </url>

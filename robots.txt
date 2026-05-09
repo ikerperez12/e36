@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+Allow: /assets/
+Allow: /videos/
+Disallow: /api/
 
 Sitemap: https://e36.vercel.app/sitemap.xml

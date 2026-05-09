@@ -12,12 +12,15 @@
     "vercel:prod": "vercel deploy --prod --no-wait",
     "build:posters": "node tools/generate-posters.mjs",
     "validate:html": "npx --yes html-validate@latest \"index.html\" \"E36 - Scroll Cine.html\" \"legal.html\"",
-    "check:js": "node --check api/health.js && node --check api/track.js && node --check sw.js && node --check tools/generate-posters.mjs && node --check tools/audit-public.mjs",
+    "check:js": "node --check api/health.js && node --check api/track.js && node --check sw.js && node --check tools/generate-posters.mjs && node --check tools/audit-public.mjs && node --check tools/seo-audit.mjs && node --check tools/submit-indexnow.mjs",
     "audit:public": "node tools/audit-public.mjs",
+    "seo:audit": "node tools/seo-audit.mjs",
+    "indexnow:dry": "node tools/submit-indexnow.mjs --dry-run",
+    "indexnow:submit": "node tools/submit-indexnow.mjs",
     "test:rendered": "playwright test",
     "lighthouse:mobile": "npx --yes lighthouse@latest http://127.0.0.1:5173 --form-factor=mobile --screenEmulation.mobile=true",
     "lighthouse:desktop": "npx --yes lighthouse@latest http://127.0.0.1:5173 --form-factor=desktop --screenEmulation.mobile=false",
-    "check": "npm run validate:html && npm run check:js && npm run audit:public"
+    "check": "npm run validate:html && npm run check:js && npm run audit:public && npm run seo:audit"
   },
   "engines": {
     "node": "24.x"

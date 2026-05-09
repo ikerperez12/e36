@@ -60,6 +60,9 @@ npm run vercel:dev       # entorno Vercel local con /api/*
 npm run validate:html    # valida index, legacy redirect y legal
 npm run check:js         # valida sintaxis JS
 npm run audit:public     # escaneo de rutas locales, agentes y secretos
+npm run seo:audit        # valida canonical, sitemap, robots, Google e IndexNow
+npm run indexnow:dry     # muestra el payload que se enviaria a IndexNow/Bing
+npm run indexnow:submit  # avisa a IndexNow/Bing de URLs publicas actualizadas
 npm run test:rendered    # Playwright + axe
 npm run check            # HTML + JS + auditoria publica
 npm run build:posters    # regenera posters desde videos
@@ -77,6 +80,26 @@ npm audit --audit-level=moderate
 ```
 
 GitHub Actions ejecuta validacion, auditoria publica, tests renderizados y audit de dependencias en `main` y pull requests.
+
+## Search Indexing
+
+La web esta preparada para indexacion limpia en Google y Bing:
+
+- Canonical absoluto en `/` y `/legal.html`.
+- `robots.txt` publico con `Sitemap: https://e36.vercel.app/sitemap.xml`.
+- `sitemap.xml` con URLs absolutas, `lastmod` y la imagen social principal.
+- Metadata Open Graph, Twitter Card y datos estructurados Schema.org.
+- Archivo de verificacion de Google Search Console en la raiz.
+- IndexNow preparado para Bing y otros buscadores compatibles con el archivo de clave publico.
+- `/api/*` queda fuera del indice mediante `robots.txt` y `X-Robots-Tag`.
+
+Para avisar a Bing/IndexNow tras un deploy:
+
+```bash
+npm run indexnow:submit
+```
+
+La verificacion de Bing Webmaster Tools se puede hacer importando la propiedad desde Google Search Console o anadiendo el token `msvalidate.01` que Bing entregue en el panel.
 
 ## Deploy
 
